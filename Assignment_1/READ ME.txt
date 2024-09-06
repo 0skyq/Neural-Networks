@@ -1,0 +1,153 @@
+#Group Number: 26
+#Roll numbers: 21CS30041, 23AT61R04
+#Project code:BSNB
+#Project name:Balance Scale using Naive Bayes based Learning Model
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import KFold
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+
+
+#Read the dataset as data frame from filepath without header row
+
+file_path = 'balance-scale.csv'
+df = pd.read_csv(file_path, header=None)
+
+#stroe dataframe values in a matrix 
+
+matrix = df.values
+n = 1
+
+#split the dataset into Attribute matrix and Target matrix
+
+X, Y = [row[1:] for row in matrix], [row[0] for row in matrix]
+
+rn = range(1, len(matrix))
+
+#split the data set into Training and validation  5 fold
+
+kf5 = KFold(n_splits=5, shuffle=True, random_state=4)
+accuracy_scores = []
+
+
+# ------------ calculate Prior probabilities P(Target) = no. of Target values/total number of variables-----------
+#count= no. of target values
+#p_prob is array of  prior probabilities for ['B' ,'L' , 'R']
+
+
+
+def cal_prior_prob(target_array):
+    target_var, count = np.unique(target_array, return_counts=True)     
+    p_prob = count / len(target_array)                                  
+    #print()
+    #print("TOTAL LENGTH :", len(target_array))
+    #print("TARGET VARIABLES ARE :", target_var)
+    #print("NUMBER OF TARGET VARIABLES :", count)
+    #print("PRIOR PROBABILITIES ARE :", p_prob)
+    #print()
+    return p_prob, count, len(target_array)
+
+
+
+
+#---------calculate Conditional probabilities P(Attribute/Target) = P(Attribute ^ Target)/P(Target) --------
+#details is a list of arrays when array elements are [Attribute_type , Attribute_value ,Target_variable , Cond_probability]
+
+
+
+def cal_conditional_prob(feature_array, target_array):
+    details = []
+    for num in range(1, 6):
+        i = 0
+        for target in ['B', 'L', 'R']:
+            for j in range(0, 4):
+                count = np.count_nonzero((target_array == target) & (feature_array[:, j] == num))
+                in_prob = count / var_counts[i]
+                arr = j+1, num, target, in_prob
+                details.append(arr)
+
+            i += 1
+
+   # print("CONDITIONAL PROBABILITIES (Feature_name,Feature_value,Target,Cond_prob):")
+   # print("Feature_name (LW,LD,RW,RD)-->(1,2,3,4) and Feature_value (1,2,3,4,5)")
+   # print()
+   #for element in details:
+   # print(element)
+
+    return details
+
+
+
+
+#------------calculate Posterior probabilites using Bayes Theorm
+#Post_prob is a list which has Post_prob of each target 
+#Normalize the values
+#Max of those prob will the pred result
+#Convert max index into target variables [ 0 , 1 ,2]---->['B' ,'L' , 'R' ]
+#append every reslut of validation set into Y_pred list
+
+
+
+def cal_posterior_prob(feature_array, prior_prob):
+
+    Y_pred = []
+    for X_val_row in feature_array:
+        j = 0
+        post_prob = []
+        for target in ['B', 'L', 'R']:
+            c_prob = []
+            for array in cond_prob_list:
+                for i in range(4):
+                    if np.any(array[0] == i+1) and np.any(X_val_row[i] == array[1]) and target == array[2]:
+                        c_prob.append(array[3])
+            post_prob.append(prior_prob[j]*np.prod(c_prob))
+            j += 1
+
+        post_prob = post_prob/np.sum(post_prob)
+        value, index = max((val, idx) for idx, val in enumerate(post_prob))
+        if index == 0:
+            Y_pred.append('B')
+        elif index == 1:
+            Y_pred.append('L')
+        elif index == 2:
+            Y_pred.append('R')
+
+       # print("POSTERIOR PROBABILITIES ARE :", post_prob)
+       # print()
+
+    #print("PREDICTED VALUES ARE:")
+    #print(Y_pred)
+    return post_prob, Y_pred
+
+
+#----- run for 5 Folds for diiferent Set combinations
+#Make a report for each Classification
+#Find average accuracy
+
+for train_index, test_index in kf5.split(rn):
+
+    X_train, X_val = np.array([X[i] for i in train_index]), np.array([X[i] for i in test_index])
+    Y_train, Y_val = np.array([Y[i] for i in train_index]), np.array([Y[i] for i in test_index])
+
+    prior_prob, var_counts, length = cal_prior_prob(Y_train)
+
+    cond_prob_list = cal_conditional_prob(X_train, Y_train)
+
+    posterior_prob, Y_predicted = cal_posterior_prob(X_val, prior_prob)
+
+    report = classification_report(Y_val, Y_predicted, zero_division=1)
+
+    accuracy = accuracy_score(Y_val, Y_predicted)
+    accuracy_scores.append(accuracy)
+
+    print()
+    print("Classification Report for Fold", n )
+    print()
+    print(report)
+    n += 1
+
+avg_accuracy = sum(accuracy_scores) / len(accuracy_scores)
+print("Average Accuracy:", avg_accuracy)
+

@@ -1,0 +1,42 @@
+Project: Preferences Match using Single Linkage Agglomerative (Bottom-Up) Clustering Technique
+Author: Thummalabavi Sankshay Reddy
+Roll No: 23AT61R04
+Project Code: PMHC-AS
+
+---
+
+Overview:
+This project implements two clustering techniques: k-means clustering and single linkage agglomerative clustering. The main goal is to match preferences based on clustering analysis.
+
+---
+
+Files Included:
+1. main.py - Main Python script containing the clustering algorithms and evaluation functions.
+2. preferences.csv - Sample CSV file containing preference data for clustering.
+3. README.txt - This file providing an overview of the project and instructions.
+
+---
+
+Setup:
+1. Ensure you have Python 3.x installed on your system.
+2. Install required libraries using the command: pip install pandas numpy
+
+---
+
+Usage:
+1. Place the 'preferences.csv' file in the same directory as the 'main.py' script.
+2. Open a terminal or command prompt and navigate to the directory containing the script.
+3. Run the script using the command: python main.py
+4. The script will perform k-means clustering for different values of k and select the optimal k based on the silhouette coefficient.
+5. It will then perform hierarchical clustering using the selected k and output the final clusters for both k-means and hierarchical clustering.
+6. The results will be saved to 'kmeans.txt' and 'agglomerative.txt' respectively.
+
+---
+
+Note:
+- Ensure that the 'preferences.csv' file is correctly formatted with preference data.
+- The script uses cosine similarity for distance calculations in clustering algorithms.
+- You can modify the script or input data as per your requirements.
+
+
+
